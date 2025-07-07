@@ -39,22 +39,22 @@ def analyze_spending(spending_data, monthly_budget):
 
     return tips
 
-# ✅ Streamlit UI
+# ✅ Streamlit UI 시작
 st.set_page_config(page_title="소비 분석 자산 조언 시스템", layout="centered")
 st.title("💸 소비 분석 자산 조언 시스템")
 
-# ✅ 월 및 예산 선택
+# ✅ 사이드바 설정
 st.sidebar.header("🔧 설정")
 month = st.sidebar.selectbox("📆 분석할 월 선택", [f"{i}월" for i in range(1, 13)])
 monthly_budget = st.sidebar.slider("💰 월 예산 설정 (원)", 100000, 1000000, 300000, step=50000)
 
-# ✅ 초기화 버튼
+# ✅ 초기화
 if st.sidebar.button("🧹 데이터 초기화"):
     if os.path.exists(DATA_FILE):
         os.remove(DATA_FILE)
         st.success("모든 지출 데이터가 초기화되었습니다.")
 
-# ✅ 기존 데이터 불러오기
+# ✅ 데이터 로드
 spending_data = []
 df_all = pd.DataFrame()
 if os.path.exists(DATA_FILE):
@@ -74,18 +74,18 @@ else:
 
 st.write(f"### 📆 {month} 예산: {monthly_budget:,}원")
 
-# ✅ 사용자 입력으로 수정 가능
+# ✅ 사용자 입력
 st.subheader("📊 소비 내역 입력")
-for i, item in enumerate(spending_data):
+for item in spending_data:
     item["amount"] = st.number_input(f"{item['category']} 지출 (원)", min_value=0, step=1000, value=item["amount"], key=item["category"])
 
-# ✅ 저장 버튼
+# ✅ 저장
 if st.button("💾 지출 내역 저장"):
     df_new = pd.DataFrame(spending_data)
     df_new["month"] = month
 
     if not df_all.empty:
-        df_all = df_all[df_all["month"] != month]  # 기존 해당 월 데이터 제거
+        df_all = df_all[df_all["month"] != month]
         df_all = pd.concat([df_all, df_new], ignore_index=True)
     else:
         df_all = df_new
@@ -97,35 +97,29 @@ if st.button("💾 지출 내역 저장"):
 total_amount = sum(item["amount"] for item in spending_data)
 st.markdown(f"### 💵 총 지출 합계: {total_amount:,}원")
 
-# ✅ 원형 그래프 시각화
+# ✅ 지출 비율 원형 그래프
 st.subheader("📈 지출 비율 시각화")
 df = pd.DataFrame(spending_data)
 df = df[df['amount'] > 0]
 
 if not df.empty:
     fig, ax = plt.subplots()
-    wedges, texts, autotexts = ax.pie(
-        df["amount"],
-        labels=df["category"],
-        autopct="%1.1f%%",
-        startangle=90,
-        textprops={'fontproperties': fontprop, 'fontsize': 12}
-    )
-    for text in texts + autotexts:
-        text.set_fontproperties(fontprop)
+    ax.pie(df["amount"], labels=df["category"], autopct="%1.1f%%", startangle=90,
+           textprops={'fontproperties': fontprop, 'fontsize': 12})
     ax.axis("equal")
     st.pyplot(fig)
 else:
     st.info("지출 내역을 입력하면 그래프가 표시됩니다.")
 
-# ✅ 월별 지출 막대 그래프
+# ✅ 월별 막대 그래프
 if os.path.exists(DATA_FILE):
+    st.subheader("📊 월별 지출 막대 그래프")
     compare_df = pd.read_csv(DATA_FILE)
     pivot_df = compare_df.pivot_table(index="category", columns="month", values="amount", aggfunc="sum", fill_value=0)
 
-    st.subheader("📊 월별 지출 막대 그래프")
     fig, ax = plt.subplots(figsize=(10, 5))
     pivot_df.plot(kind="bar", ax=ax)
+    ax.set_ylim(0, monthly_budget)  # ✅ 예산에 맞춰 Y축 설정
     ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
     ax.set_xlabel("카테고리", fontproperties=fontprop)
     ax.legend(prop=fontprop)
@@ -133,7 +127,7 @@ if os.path.exists(DATA_FILE):
     plt.yticks(fontproperties=fontprop)
     st.pyplot(fig)
 
-# ✅ 소비 조언을 가장 마지막에 배치
+# ✅ 소비 조언 (가장 마지막에 출력)
 st.subheader("💡 소비 조언")
 tips = analyze_spending(spending_data, monthly_budget)
 for tip in tips:
