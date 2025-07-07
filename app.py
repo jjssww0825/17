@@ -118,13 +118,7 @@ if not df.empty:
 else:
     st.info("지출 내역을 입력하면 그래프가 표시됩니다.")
 
-# ✅ 소비 조언 출력
-st.subheader("💡 소비 조언")
-tips = analyze_spending(spending_data, monthly_budget)
-for tip in tips:
-    st.success(tip)
-
-# ✅ 월별 지출 막대 그래프만 유지
+# ✅ 월별 지출 막대 그래프
 if os.path.exists(DATA_FILE):
     compare_df = pd.read_csv(DATA_FILE)
     pivot_df = compare_df.pivot_table(index="category", columns="month", values="amount", aggfunc="sum", fill_value=0)
@@ -138,3 +132,9 @@ if os.path.exists(DATA_FILE):
     plt.xticks(rotation=0, fontproperties=fontprop)
     plt.yticks(fontproperties=fontprop)
     st.pyplot(fig)
+
+# ✅ 소비 조언을 가장 마지막에 배치
+st.subheader("💡 소비 조언")
+tips = analyze_spending(spending_data, monthly_budget)
+for tip in tips:
+    st.success(tip)
