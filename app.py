@@ -132,13 +132,13 @@ if os.path.exists(DATA_FILE):
     ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
     ax.set_xlabel("카테고리", fontproperties=fontprop)
     ax.set_ylim(0, monthly_budget)
-    ax.legend(loc="upper left", bbox_to_anchor=(1, 1), prop=fontprop)
+    ax.legend(prop=fontprop, bbox_to_anchor=(1.01, 1), loc='upper left')
+    ax.grid(False)
     plt.xticks(rotation=0, fontproperties=fontprop)
     plt.yticks(fontproperties=fontprop)
-    ax.grid(False)
     st.pyplot(fig)
 
-# ✅ 평균 지출 막대 그래프
+# ✅ 카테고리별 평균 지출 막대 그래프
 st.subheader("📊 카테고리별 평균 지출")
 avg_data = {
     "식비": 180000,
@@ -151,7 +151,7 @@ avg_df = pd.DataFrame.from_dict(avg_data, orient='index', columns=["평균 지�
 avg_df = avg_df.reindex(categories)
 
 fig, ax = plt.subplots(figsize=(10, 5))
-avg_df.plot(kind="bar", legend=False, ax=ax, color="lightgray")
+avg_df.plot(kind="bar", legend=False, ax=ax, color="#e67e22")  # ✔️ 생동감 있는 주황
 ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
 ax.set_xlabel("카테고리", fontproperties=fontprop)
 ax.set_title("카테고리별 평균 지출", fontproperties=fontprop)
