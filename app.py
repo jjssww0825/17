@@ -27,27 +27,19 @@ def analyze_spending(spending_data, monthly_budget):
         tips.append("✅ 예산 내에서 잘 지출하고 있습니다. 좋은 소비 습관입니다!")
 
     for item in spending_data:
-        cat = item["category"]
-        amt = item["amount"]
-
-        if cat == "카페" and amt > 70000:
-            tips.append("☕ 카페 소비가 많습니다. 주 1~2회 방문으로 줄이면 절약에 도움이 됩니다.")
-        elif cat == "쇼핑" and amt > 100000:
-            tips.append("🛍️ 쇼핑 지출이 높습니다. 필요 없는 소비는 줄이는 것이 좋아요.")
-        elif cat == "식비":
-            if amt > 200000:
-                tips.append("🍱 식비가 많은 편입니다. 외식보다는 집밥을 고려해보세요.")
-            elif amt < 50000:
-                tips.append("🥗 식비가 적습니다. 영양 불균형이 생기지 않도록 주의하세요.")
-        elif cat == "여가" and amt > 100000:
-            tips.append("🎮 여가 지출이 많습니다. 무료 또는 저렴한 활동도 고려해보세요.")
-        elif cat == "교통" and amt > 80000:
-            tips.append("🚌 교통비가 높습니다. 정기권이나 대중교통 이용을 검토해보세요.")
-
-        ratio = amt / monthly_budget if monthly_budget else 0
-        if ratio > 0.5:
-            tips.append(f"📌 '{cat}' 항목이 예산의 50% 이상을 차지합니다. 소비를 조정해보세요.")
-
+        amount = item["amount"]
+        if amount == 0:
+            continue
+        if item["category"] == "카페" and amount > 70000:
+            tips.append("☕ 카페 소비가 많습니다. 일주일 1~2회로 줄이면 절약에 도움이 됩니다.")
+        elif item["category"] == "쇼핑" and amount > 100000:
+            tips.append("🛍️ 쇼핑 지출이 높습니다. 충동구매를 줄이도록 노력해보세요.")
+        elif item["category"] == "식비" and amount > 200000:
+            tips.append("🍱 식비가 많은 편입니다. 외식보다는 집밥을 고려해보세요.")
+        elif item["category"] == "여가" and amount > 100000:
+            tips.append("🎮 여가 지출이 높습니다. 무료 또는 저비용 활동도 고려해보세요.")
+        elif item["category"] == "교통" and amount > 80000:
+            tips.append("🚌 교통비가 높습니다. 정기권 활용을 고려해보세요.")
     return tips
 
 # ✅ Streamlit 설정
@@ -143,12 +135,12 @@ if os.path.exists(DATA_FILE):
     ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
     ax.set_xlabel("카테고리", fontproperties=fontprop)
     ax.set_ylim(0, monthly_budget)
-    ax.legend(prop=fontprop)
+    ax.legend(prop=fontprop, bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)  # 🔄 범례 위치 바깥으로
     plt.xticks(rotation=0, fontproperties=fontprop)
     plt.yticks(fontproperties=fontprop)
     st.pyplot(fig)
 
-# ✅ 소비 조언 (맨 마지막에 배치)
+# ✅ 소비 조언
 st.subheader("💡 소비 조언")
 for tip in analyze_spending(spending_data, monthly_budget):
     st.success(tip)
