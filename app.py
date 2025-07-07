@@ -120,3 +120,14 @@ if os.path.exists(DATA_FILE):
     compare_df = pd.read_csv(DATA_FILE)
     pivot_df = compare_df.pivot_table(index="category", columns="month", values="amount", aggfunc="sum", fill_value=0)
     st.dataframe(pivot_df.style.format("{:,.0f}"))
+
+    # ✅ 막대 그래프 시각화
+    st.subheader("📊 월별 지출 막대 그래프")
+    fig, ax = plt.subplots(figsize=(10, 5))
+    pivot_df.plot(kind="bar", ax=ax)
+    ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
+    ax.set_xlabel("카테고리", fontproperties=fontprop)
+    ax.legend(prop=fontprop)
+    plt.xticks(rotation=0, fontproperties=fontprop)
+    plt.yticks(fontproperties=fontprop)
+    st.pyplot(fig)
