@@ -39,7 +39,26 @@ def analyze_spending(spending_data, monthly_budget):
             tips.append("🚌 교통비가 높습니다. 정기권 활용을 고려해보세요.")
     return tips
 
-# ✅ Streamlit 설정
+# ✅ 저축 및 습관 조언 함수
+def generate_saving_advice(spending_data, monthly_budget):
+    total_spent = sum(item["amount"] for item in spending_data)
+    remaining = monthly_budget - total_spent
+    advices = []
+
+    if remaining > 0:
+        advices.append(f"🎯 이번 달 예산의 {remaining:,}원이 남았습니다. 남은 금액은 비상금 계좌나 예적금으로 저축해보는 건 어떨까요?")
+
+    for item in spending_data:
+        if item["category"] == "식비" and item["amount"] > 150000:
+            advices.append("🍱 식비 지출이 많다면 일주일에 하루는 도시락을 싸거나 집밥 위주로 구성해보세요.")
+        elif item["category"] == "카페" and item["amount"] > 70000:
+            advices.append("☕ 카페 소비가 많다면 직접 커피 내려 마시기 같은 작은 실천으로도 절약할 수 있어요.")
+        elif item["category"] == "여가" and item["amount"] > 80000:
+            advices.append("🎮 여가비가 높다면 무료 야외활동, 도서관 이용 등을 고려해보세요.")
+
+    return advices
+
+# ✅ Streamlit UI
 st.set_page_config(page_title="소비 분석 자산 조언 시스템", layout="centered")
 st.title("💸 소비 분석 자산 조언 시스템")
 
@@ -49,7 +68,7 @@ selected_month = st.sidebar.selectbox("📆 분석할 월 선택", [f"{i}월" fo
 monthly_budget = st.sidebar.slider("💰 월 예산 설정 (원)", 100000, 1000000, 300000, step=50000)
 period = st.sidebar.selectbox("📊 비교 기간 선택", ["1개월", "3개월", "6개월", "9개월", "12개월"])
 
-# ✅ 초기화 버튼
+# ✅ 초기화
 if st.sidebar.button("🧹 데이터 초기화"):
     if os.path.exists(DATA_FILE):
         os.remove(DATA_FILE)
@@ -94,7 +113,7 @@ if st.button("💾 지출 내역 저장"):
     df_all.to_csv(DATA_FILE, index=False)
     st.success(f"{selected_month} 지출 내역이 저장되었습니다!")
 
-# ✅ 총합계 표시
+# ✅ 총합계
 total_amount = sum(item["amount"] for item in spending_data)
 st.markdown(f"### 💵 총 지출 합계: {total_amount:,}원")
 
@@ -111,7 +130,7 @@ if not df.empty:
 else:
     st.info("지출 내역을 입력하면 그래프가 표시됩니다.")
 
-# ✅ 월별 지출 막대 그래프
+# ✅ 막대 그래프
 if os.path.exists(DATA_FILE):
     st.subheader("📊 월별 지출 막대 그래프")
     period_map = {
@@ -128,40 +147,20 @@ if os.path.exists(DATA_FILE):
     pivot_df = pivot_df.reindex(index=categories)
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    pivot_df.plot(kind="bar", ax=ax)
+    pivot_df.plot(kind="bar", ax=ax, color="orange")  # 생동감 있는 주황
     ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
     ax.set_xlabel("카테고리", fontproperties=fontprop)
     ax.set_ylim(0, monthly_budget)
-    ax.legend(prop=fontprop, bbox_to_anchor=(1.01, 1), loc='upper left')
-    ax.grid(False)
+    ax.legend(prop=fontprop)
     plt.xticks(rotation=0, fontproperties=fontprop)
     plt.yticks(fontproperties=fontprop)
     st.pyplot(fig)
-
-# ✅ 카테고리별 평균 지출 막대 그래프
-st.subheader("📊 카테고리별 평균 지출")
-avg_data = {
-    "식비": 180000,
-    "카페": 35000,
-    "쇼핑": 20000,
-    "교통": 10000,
-    "여가": 52000
-}
-avg_df = pd.DataFrame.from_dict(avg_data, orient='index', columns=["평균 지출"])
-avg_df = avg_df.reindex(categories)
-
-fig, ax = plt.subplots(figsize=(10, 5))
-avg_df.plot(kind="bar", legend=False, ax=ax, color="#e67e22")  # ✔️ 생동감 있는 주황
-ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
-ax.set_xlabel("카테고리", fontproperties=fontprop)
-ax.set_title("카테고리별 평균 지출", fontproperties=fontprop)
-ax.set_ylim(0, monthly_budget)
-ax.grid(False)
-plt.xticks(rotation=0, fontproperties=fontprop)
-plt.yticks(fontproperties=fontprop)
-st.pyplot(fig)
 
 # ✅ 소비 조언
 st.subheader("💡 소비 조언")
 for tip in analyze_spending(spending_data, monthly_budget):
     st.success(tip)
+
+# ✅ 저축 및 습관 조언
+for advice in generate_saving_advice(spending_data, monthly_budget):
+    st.info(advice)
