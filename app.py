@@ -93,6 +93,10 @@ if st.button("💾 지출 내역 저장"):
     df_all.to_csv(DATA_FILE, index=False)
     st.success(f"{month} 지출 내역이 저장되었습니다!")
 
+# ✅ 총합계 표시
+total_amount = sum(item["amount"] for item in spending_data)
+st.markdown(f"### 💵 총 지출 합계: {total_amount:,}원")
+
 # ✅ 원형 그래프 시각화
 st.subheader("📈 지출 비율 시각화")
 df = pd.DataFrame(spending_data)
