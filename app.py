@@ -160,3 +160,8 @@ ax.grid(False)
 plt.xticks(rotation=0, fontproperties=fontprop)
 plt.yticks(fontproperties=fontprop)
 st.pyplot(fig)
+
+# ✅ 소비 조언
+st.subheader("💡 소비 조언")
+for tip in analyze_spending(spending_data, monthly_budget):
+    st.success(tip)
