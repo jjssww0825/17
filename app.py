@@ -5,7 +5,7 @@ import matplotlib.font_manager as fm
 import os
 
 # ✅ 한글 폰트 설정
-font_path = "NanumHumanRegular.ttf"  # 같은 폴더에 있어야 함
+font_path = "NanumHumanRegular.ttf"
 fontprop = fm.FontProperties(fname=font_path)
 plt.rcParams["font.family"] = fontprop.get_name()
 plt.rcParams["axes.unicode_minus"] = False
@@ -13,7 +13,7 @@ plt.rcParams["axes.unicode_minus"] = False
 DATA_FILE = "monthly_spending.csv"
 categories = ["식비", "카페", "쇼핑", "교통", "여가"]
 
-# ✅ 소비 분석 함수 (다양한 조언 포함)
+# ✅ 소비 분석 함수 (비어있는 항목 조언 제거됨)
 def analyze_spending(spending_data, monthly_budget):
     total_spent = sum(item["amount"] for item in spending_data)
     tips = []
@@ -40,11 +40,8 @@ def analyze_spending(spending_data, monthly_budget):
             tips.append("🎮 여가 지출이 많습니다. 무료 활동도 고려해보세요.")
         elif item["category"] == "교통" and item["amount"] > 80000:
             tips.append("🚌 교통비가 높습니다. 정기권 사용을 고려해보세요.")
-
-        if item["amount"] == 0:
-            tips.append(f"❔ {item['category']} 항목이 비어있습니다. 입력을 잊었을 수 있습니다.")
-        elif item["amount"] < 5000:
-            tips.append(f"💡 {item['category']} 항목 지출이 너무 적습니다. 과도한 절약은 삶의 질을 낮출 수 있어요.")
+        elif item["amount"] < 5000 and item["amount"] > 0:
+            tips.append(f"💡 {item['category']} 지출이 매우 적습니다. 과도한 절약은 삶의 질을 낮출 수 있어요.")
 
     max_item = max(spending_data, key=lambda x: x["amount"])
     for item in spending_data:
