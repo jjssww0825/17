@@ -39,7 +39,7 @@ def analyze_spending(spending_data, monthly_budget):
 
     return tips
 
-# ✅ Streamlit UI
+# ✅ Streamlit UI 설정
 st.set_page_config(page_title="소비 분석 자산 조언 시스템", layout="centered")
 st.title("💸 소비 분석 자산 조언 시스템")
 
@@ -74,7 +74,7 @@ else:
 
 st.write(f"### 📆 {month} 예산: {monthly_budget:,}원")
 
-# ✅ 사용자 입력으로 수정 가능
+# ✅ 사용자 입력
 st.subheader("📊 소비 내역 입력")
 for i, item in enumerate(spending_data):
     item["amount"] = st.number_input(f"{item['category']} 지출 (원)", min_value=0, step=1000, value=item["amount"], key=item["category"])
@@ -124,14 +124,14 @@ tips = analyze_spending(spending_data, monthly_budget)
 for tip in tips:
     st.success(tip)
 
-# ✅ 월별 비교 시각화
+# ✅ 월별 비교 및 막대 그래프
 if os.path.exists(DATA_FILE):
     st.subheader("📊 월별 지출 비교")
     compare_df = pd.read_csv(DATA_FILE)
     pivot_df = compare_df.pivot_table(index="category", columns="month", values="amount", aggfunc="sum", fill_value=0)
+    pivot_df = pivot_df.loc[pivot_df.index.isin(categories)]  # 기타 제외
     st.dataframe(pivot_df.style.format("{:,.0f}"))
 
-    # ✅ 막대 그래프 시각화
     st.subheader("📊 월별 지출 막대 그래프")
     fig, ax = plt.subplots(figsize=(10, 5))
     pivot_df.plot(kind="bar", ax=ax)
