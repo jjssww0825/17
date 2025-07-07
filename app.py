@@ -27,18 +27,15 @@ def analyze_spending(spending_data, monthly_budget):
         tips.append("✅ 예산 내에서 잘 지출하고 있습니다. 좋은 소비 습관입니다!")
 
     for item in spending_data:
-        amount = item["amount"]
-        if amount == 0:
-            continue
-        if item["category"] == "카페" and amount > 70000:
+        if item["category"] == "카페" and item["amount"] > 70000:
             tips.append("☕ 카페 소비가 많습니다. 일주일 1~2회로 줄이면 절약에 도움이 됩니다.")
-        elif item["category"] == "쇼핑" and amount > 100000:
+        elif item["category"] == "쇼핑" and item["amount"] > 100000:
             tips.append("🛍️ 쇼핑 지출이 높습니다. 충동구매를 줄이도록 노력해보세요.")
-        elif item["category"] == "식비" and amount > 200000:
+        elif item["category"] == "식비" and item["amount"] > 200000:
             tips.append("🍱 식비가 많은 편입니다. 외식보다는 집밥을 고려해보세요.")
-        elif item["category"] == "여가" and amount > 100000:
+        elif item["category"] == "여가" and item["amount"] > 100000:
             tips.append("🎮 여가 지출이 높습니다. 무료 또는 저비용 활동도 고려해보세요.")
-        elif item["category"] == "교통" and amount > 80000:
+        elif item["category"] == "교통" and item["amount"] > 80000:
             tips.append("🚌 교통비가 높습니다. 정기권 활용을 고려해보세요.")
     return tips
 
@@ -114,7 +111,7 @@ if not df.empty:
 else:
     st.info("지출 내역을 입력하면 그래프가 표시됩니다.")
 
-# ✅ 막대 그래프
+# ✅ 월별 지출 막대 그래프
 if os.path.exists(DATA_FILE):
     st.subheader("📊 월별 지출 막대 그래프")
     period_map = {
@@ -134,11 +131,34 @@ if os.path.exists(DATA_FILE):
     pivot_df.plot(kind="bar", ax=ax)
     ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
     ax.set_xlabel("카테고리", fontproperties=fontprop)
+    ax.set_title("월별 지출 막대 그래프", fontproperties=fontprop)
     ax.set_ylim(0, monthly_budget)
-    ax.legend(prop=fontprop, bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)  # 🔄 범례 위치 바깥으로
+    ax.grid(False)
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop=fontprop)
     plt.xticks(rotation=0, fontproperties=fontprop)
     plt.yticks(fontproperties=fontprop)
     st.pyplot(fig)
+
+# ✅ 평균 지출 막대 그래프
+st.subheader("📊 카테고리별 평균 지출")
+avg_data = {
+    "식비": 180000,
+    "카페": 35000,
+    "쇼핑": 20000,
+    "교통": 10000,
+    "여가": 52000
+}
+avg_df = pd.Series(avg_data)
+
+fig, ax = plt.subplots(figsize=(10, 5))
+avg_df.plot(kind="bar", color="gray", ax=ax)
+ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
+ax.set_xlabel("카테고리", fontproperties=fontprop)
+ax.set_title("카테고리별 평균 지출", fontproperties=fontprop)
+ax.grid(False)
+plt.xticks(rotation=0, fontproperties=fontprop)
+plt.yticks(fontproperties=fontprop)
+st.pyplot(fig)
 
 # ✅ 소비 조언
 st.subheader("💡 소비 조언")
