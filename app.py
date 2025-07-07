@@ -111,7 +111,7 @@ if not df.empty:
 else:
     st.info("지출 내역을 입력하면 그래프가 표시됩니다.")
 
-# ✅ 월별 지출 막대 그래프
+# ✅ 막대 그래프 (월별)
 if os.path.exists(DATA_FILE):
     st.subheader("📊 월별 지출 막대 그래프")
     period_map = {
@@ -131,15 +131,14 @@ if os.path.exists(DATA_FILE):
     pivot_df.plot(kind="bar", ax=ax)
     ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
     ax.set_xlabel("카테고리", fontproperties=fontprop)
-    ax.set_title("월별 지출 막대 그래프", fontproperties=fontprop)
     ax.set_ylim(0, monthly_budget)
+    ax.legend(prop=fontprop, bbox_to_anchor=(1.02, 1), loc="upper left")
     ax.grid(False)
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop=fontprop)
     plt.xticks(rotation=0, fontproperties=fontprop)
     plt.yticks(fontproperties=fontprop)
     st.pyplot(fig)
 
-# ✅ 평균 지출 막대 그래프
+# ✅ 평균 막대 그래프
 st.subheader("📊 카테고리별 평균 지출")
 avg_data = {
     "식비": 180000,
@@ -148,10 +147,11 @@ avg_data = {
     "교통": 10000,
     "여가": 52000
 }
-avg_df = pd.Series(avg_data)
+avg_df = pd.DataFrame.from_dict(avg_data, orient='index', columns=["평균 지출"])
+avg_df = avg_df.reindex(categories)
 
 fig, ax = plt.subplots(figsize=(10, 5))
-avg_df.plot(kind="bar", color="gray", ax=ax)
+avg_df.plot(kind="bar", legend=False, ax=ax, color="lightgray")
 ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
 ax.set_xlabel("카테고리", fontproperties=fontprop)
 ax.set_title("카테고리별 평균 지출", fontproperties=fontprop)
