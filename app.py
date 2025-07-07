@@ -48,6 +48,12 @@ st.sidebar.header("🔧 설정")
 month = st.sidebar.selectbox("📆 분석할 월 선택", [f"{i}월" for i in range(1, 13)])
 monthly_budget = st.sidebar.slider("💰 월 예산 설정 (원)", 100000, 1000000, 300000, step=50000)
 
+# ✅ 초기화 버튼
+if st.sidebar.button("🧹 데이터 초기화"):
+    if os.path.exists(DATA_FILE):
+        os.remove(DATA_FILE)
+        st.success("모든 지출 데이터가 초기화되었습니다.")
+
 # ✅ 기존 데이터 불러오기
 spending_data = []
 df_all = pd.DataFrame()
