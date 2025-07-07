@@ -11,7 +11,7 @@ plt.rcParams['font.family'] = fontprop.get_name()
 plt.rcParams['axes.unicode_minus'] = False
 
 DATA_FILE = "monthly_spending.csv"
-categories = ["식비", "카페", "쇼핑", "교통", "여가", "기타"]
+categories = ["식비", "카페", "쇼핑", "교통", "여가"]
 
 # ✅ 소비 분석 함수
 def analyze_spending(spending_data, monthly_budget):
