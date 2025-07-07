@@ -50,6 +50,7 @@ monthly_budget = st.sidebar.slider("💰 월 예산 설정 (원)", 100000, 10000
 
 # ✅ 기존 데이터 불러오기
 spending_data = []
+df_all = pd.DataFrame()
 if os.path.exists(DATA_FILE):
     df_all = pd.read_csv(DATA_FILE)
     df_month = df_all[df_all["month"] == month]
@@ -77,8 +78,7 @@ if st.button("💾 지출 내역 저장"):
     df_new = pd.DataFrame(spending_data)
     df_new["month"] = month
 
-    if os.path.exists(DATA_FILE):
-        df_all = pd.read_csv(DATA_FILE)
+    if not df_all.empty:
         df_all = df_all[df_all["month"] != month]  # 기존 해당 월 데이터 제거
         df_all = pd.concat([df_all, df_new], ignore_index=True)
     else:
@@ -113,3 +113,10 @@ st.subheader("💡 소비 조언")
 tips = analyze_spending(spending_data, monthly_budget)
 for tip in tips:
     st.success(tip)
+
+# ✅ 월별 비교 시각화
+if os.path.exists(DATA_FILE):
+    st.subheader("📊 월별 지출 비교")
+    compare_df = pd.read_csv(DATA_FILE)
+    pivot_df = compare_df.pivot_table(index="category", columns="month", values="amount", aggfunc="sum", fill_value=0)
+    st.dataframe(pivot_df.style.format("{:,.0f}"))
