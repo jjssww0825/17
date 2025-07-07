@@ -14,29 +14,36 @@ plt.rcParams["axes.unicode_minus"] = False
 DATA_FILE = "monthly_spending.csv"
 categories = ["식비", "카페", "쇼핑", "교통", "여가"]
 
-# ✅ 소비 분석 함수
+# ✅ 소비 분석 + 저축 조언 함수
 def analyze_spending(spending_data, monthly_budget):
     total_spent = sum(item["amount"] for item in spending_data)
     tips = []
 
+    # 예산 대비 조언
     if total_spent > monthly_budget:
         tips.append(f"⚠️ 예산 초과! 설정한 월 예산({monthly_budget:,}원)을 {total_spent - monthly_budget:,}원 초과했습니다.")
     elif total_spent > monthly_budget * 0.9:
         tips.append("⚠️ 예산의 90% 이상 지출했습니다. 남은 기간 동안 지출을 줄이세요.")
     else:
+        remaining = monthly_budget - total_spent
         tips.append("✅ 예산 내에서 잘 지출하고 있습니다. 좋은 소비 습관입니다!")
+        tips.append(f"🎯 이번 달 예산의 {remaining:,}원이 남았습니다. 비상금 계좌나 예적금으로 저축해보는 건 어떨까요?")
 
+    # 카테고리별 소비 조언
     for item in spending_data:
-        if item["category"] == "카페" and item["amount"] > 70000:
-            tips.append("☕ 카페 소비가 많습니다. 일주일 1~2회로 줄이면 절약에 도움이 됩니다.")
-        elif item["category"] == "쇼핑" and item["amount"] > 100000:
-            tips.append("🛍️ 쇼핑 지출이 높습니다. 충동구매를 줄이도록 노력해보세요.")
-        elif item["category"] == "식비" and item["amount"] > 200000:
-            tips.append("🍱 식비가 많은 편입니다. 외식보다는 집밥을 고려해보세요.")
-        elif item["category"] == "여가" and item["amount"] > 100000:
-            tips.append("🎮 여가 지출이 높습니다. 무료 또는 저비용 활동도 고려해보세요.")
-        elif item["category"] == "교통" and item["amount"] > 80000:
+        amt = item["amount"]
+        cat = item["category"]
+        if cat == "카페" and amt > 70000:
+            tips.append("☕ 카페 소비가 많습니다. 직접 커피를 내려 마시는 습관을 들이면 절약에 도움이 됩니다.")
+        elif cat == "쇼핑" and amt > 100000:
+            tips.append("👗 쇼핑 지출이 잦은 편입니다. 매달 ‘소비하지 않는 날(No-Spend Day)’을 정해보는 건 어떨까요?")
+        elif cat == "식비" and amt > 200000:
+            tips.append("🍱 식비 지출이 많다면 일주일에 하루는 도시락을 싸거나 집밥 위주로 구성해보세요.")
+        elif cat == "여가" and amt > 100000:
+            tips.append("🎮 여가비가 높다면 무료 야외활동, 도서관 이용 등을 고려해보세요.")
+        elif cat == "교통" and amt > 80000:
             tips.append("🚌 교통비가 높습니다. 정기권 활용을 고려해보세요.")
+
     return tips
 
 # ✅ Streamlit 설정
@@ -61,21 +68,15 @@ df_all = pd.DataFrame()
 if os.path.exists(DATA_FILE):
     df_all = pd.read_csv(DATA_FILE)
     df_month = df_all[df_all["month"] == selected_month]
-    if not df_month.empty:
-        for cat in categories:
-            amount = df_month[df_month["category"] == cat]["amount"]
-            if not amount.empty:
-                spending_data.append({"category": cat, "amount": int(amount.values[0])})
-            else:
-                spending_data.append({"category": cat, "amount": 0})
-    else:
-        spending_data = [{"category": cat, "amount": 0} for cat in categories]
+    for cat in categories:
+        amount = df_month[df_month["category"] == cat]["amount"]
+        spending_data.append({"category": cat, "amount": int(amount.values[0]) if not amount.empty else 0})
 else:
     spending_data = [{"category": cat, "amount": 0} for cat in categories]
 
 st.write(f"### 📆 {selected_month} 예산: {monthly_budget:,}원")
 
-# ✅ 지출 입력
+# ✅ 소비 입력
 st.subheader("📊 소비 내역 입력")
 for item in spending_data:
     item["amount"] = st.number_input(f"{item['category']} 지출 (원)", min_value=0, step=1000, value=item["amount"], key=item["category"])
@@ -84,17 +85,12 @@ for item in spending_data:
 if st.button("💾 지출 내역 저장"):
     df_new = pd.DataFrame(spending_data)
     df_new["month"] = selected_month
-
-    if not df_all.empty:
-        df_all = df_all[df_all["month"] != selected_month]
-        df_all = pd.concat([df_all, df_new], ignore_index=True)
-    else:
-        df_all = df_new
-
+    df_all = df_all[df_all["month"] != selected_month]
+    df_all = pd.concat([df_all, df_new], ignore_index=True)
     df_all.to_csv(DATA_FILE, index=False)
     st.success(f"{selected_month} 지출 내역이 저장되었습니다!")
 
-# ✅ 총합계 표시
+# ✅ 총합계
 total_amount = sum(item["amount"] for item in spending_data)
 st.markdown(f"### 💵 총 지출 합계: {total_amount:,}원")
 
@@ -104,8 +100,7 @@ df = pd.DataFrame(spending_data)
 df = df[df["amount"] > 0]
 if not df.empty:
     fig, ax = plt.subplots()
-    ax.pie(df["amount"], labels=df["category"], autopct="%1.1f%%", startangle=90,
-           textprops={'fontproperties': fontprop, 'fontsize': 12})
+    ax.pie(df["amount"], labels=df["category"], autopct="%1.1f%%", startangle=90, textprops={'fontproperties': fontprop, 'fontsize': 12})
     ax.axis("equal")
     st.pyplot(fig)
 else:
@@ -114,13 +109,7 @@ else:
 # ✅ 월별 지출 막대 그래프
 if os.path.exists(DATA_FILE):
     st.subheader("📊 월별 지출 막대 그래프")
-    period_map = {
-        "1개월": 1,
-        "3개월": 3,
-        "6개월": 6,
-        "9개월": 9,
-        "12개월": 12
-    }
+    period_map = {"1개월": 1, "3개월": 3, "6개월": 6, "9개월": 9, "12개월": 12}
     compare_months = [f"{i}월" for i in range(1, period_map[period] + 1)]
     compare_df = pd.read_csv(DATA_FILE)
     compare_df = compare_df[compare_df["month"].isin(compare_months)]
@@ -138,7 +127,7 @@ if os.path.exists(DATA_FILE):
     plt.yticks(fontproperties=fontprop)
     st.pyplot(fig)
 
-# ✅ 카테고리별 평균 지출 막대 그래프
+# ✅ 평균 지출 막대 그래프
 st.subheader("📊 카테고리별 평균 지출")
 avg_data = {
     "식비": 180000,
@@ -147,11 +136,10 @@ avg_data = {
     "교통": 10000,
     "여가": 52000
 }
-avg_df = pd.DataFrame.from_dict(avg_data, orient='index', columns=["평균 지출"])
-avg_df = avg_df.reindex(categories)
+avg_df = pd.DataFrame.from_dict(avg_data, orient='index', columns=["평균 지출"]).reindex(categories)
 
 fig, ax = plt.subplots(figsize=(10, 5))
-avg_df.plot(kind="bar", legend=False, ax=ax, color="#e67e22")  # ✔️ 생동감 있는 주황
+avg_df.plot(kind="bar", ax=ax, color="#e67e22", legend=False)
 ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
 ax.set_xlabel("카테고리", fontproperties=fontprop)
 ax.set_title("카테고리별 평균 지출", fontproperties=fontprop)
@@ -163,5 +151,9 @@ st.pyplot(fig)
 
 # ✅ 소비 조언
 st.subheader("💡 소비 조언")
-for tip in analyze_spending(spending_data, monthly_budget):
-    st.success(tip)
+tips = analyze_spending(spending_data, monthly_budget)
+shown = set()
+for tip in tips:
+    if tip not in shown:
+        st.success(tip)
+        shown.add(tip)
