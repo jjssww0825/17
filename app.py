@@ -10,7 +10,6 @@ fontprop = fm.FontProperties(fname=font_path)
 plt.rcParams['font.family'] = fontprop.get_name()
 plt.rcParams['axes.unicode_minus'] = False
 
-# ✅ 기본 설정
 DATA_FILE = "monthly_spending.csv"
 categories = ["식비", "카페", "쇼핑", "교통", "여가"]
 
@@ -75,9 +74,9 @@ else:
 
 st.write(f"### 📆 {month} 예산: {monthly_budget:,}원")
 
-# ✅ 소비 내역 입력
+# ✅ 사용자 입력으로 수정 가능
 st.subheader("📊 소비 내역 입력")
-for item in spending_data:
+for i, item in enumerate(spending_data):
     item["amount"] = st.number_input(f"{item['category']} 지출 (원)", min_value=0, step=1000, value=item["amount"], key=item["category"])
 
 # ✅ 저장 버튼
@@ -125,19 +124,11 @@ tips = analyze_spending(spending_data, monthly_budget)
 for tip in tips:
     st.success(tip)
 
-# ✅ 월별 비교
+# ✅ 월별 지출 막대 그래프만 유지
 if os.path.exists(DATA_FILE):
-    st.subheader("📊 월별 지출 비교")
     compare_df = pd.read_csv(DATA_FILE)
-
-    # 🔽 "기타" 제거 → categories 리스트에 포함된 항목만 필터링
-    compare_df = compare_df[compare_df["category"].isin(categories)]
-
     pivot_df = compare_df.pivot_table(index="category", columns="month", values="amount", aggfunc="sum", fill_value=0)
-    pivot_df = pivot_df.reindex(categories)
-    st.dataframe(pivot_df.style.format("{:,.0f}"))
 
-    # ✅ 막대 그래프 시각화
     st.subheader("📊 월별 지출 막대 그래프")
     fig, ax = plt.subplots(figsize=(10, 5))
     pivot_df.plot(kind="bar", ax=ax)
