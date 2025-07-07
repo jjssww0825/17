@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import os
+import random
 
 # ✅ 한글 폰트 설정
 font_path = "NanumHumanRegular.ttf"
@@ -10,15 +11,15 @@ fontprop = fm.FontProperties(fname=font_path)
 plt.rcParams["font.family"] = fontprop.get_name()
 plt.rcParams["axes.unicode_minus"] = False
 
-# ✅ 기본 설정
 DATA_FILE = "monthly_spending.csv"
 categories = ["식비", "카페", "쇼핑", "교통", "여가"]
 
-# ✅ 소비 분석 함수
+# ✅ 소비 분석 함수 (항상 2개 이상 조언 제공)
 def analyze_spending(spending_data, monthly_budget):
     total_spent = sum(item["amount"] for item in spending_data)
     tips = []
 
+    # 기본 예산 기준 조언
     if total_spent > monthly_budget:
         tips.append(f"⚠️ 예산 초과! 설정한 월 예산({monthly_budget:,}원)을 {total_spent - monthly_budget:,}원 초과했습니다.")
     elif total_spent > monthly_budget * 0.9:
@@ -26,6 +27,7 @@ def analyze_spending(spending_data, monthly_budget):
     else:
         tips.append("✅ 예산 내에서 잘 지출하고 있습니다. 좋은 소비 습관입니다!")
 
+    # 카테고리별 조건 조언
     for item in spending_data:
         if item["category"] == "카페" and item["amount"] > 70000:
             tips.append("☕ 카페 소비가 많습니다. 일주일 1~2회로 줄이면 절약에 도움이 됩니다.")
@@ -37,6 +39,19 @@ def analyze_spending(spending_data, monthly_budget):
             tips.append("🎮 여가 지출이 높습니다. 무료 또는 저비용 활동도 고려해보세요.")
         elif item["category"] == "교통" and item["amount"] > 80000:
             tips.append("🚌 교통비가 높습니다. 정기권 활용을 고려해보세요.")
+
+    # 소비 조언이 2개 미만일 경우 무작위 추가
+    if len(tips) < 2:
+        default_extra = [
+            "💡 이번 달은 식비 외에도 여가비를 줄이는 것도 고려해보세요.",
+            "💡 불필요한 정기구독 서비스가 있다면 점검해보세요.",
+            "💡 매달 고정 지출 외 변동 지출을 추적하면 예산관리에 도움됩니다.",
+        ]
+        while len(tips) < 2:
+            candidate = random.choice(default_extra)
+            if candidate not in tips:
+                tips.append(candidate)
+
     return tips
 
 # ✅ 저축 및 습관 조언 함수
@@ -58,7 +73,7 @@ def generate_saving_advice(spending_data, monthly_budget):
 
     return advices
 
-# ✅ Streamlit UI
+# ✅ Streamlit 설정
 st.set_page_config(page_title="소비 분석 자산 조언 시스템", layout="centered")
 st.title("💸 소비 분석 자산 조언 시스템")
 
@@ -68,13 +83,13 @@ selected_month = st.sidebar.selectbox("📆 분석할 월 선택", [f"{i}월" fo
 monthly_budget = st.sidebar.slider("💰 월 예산 설정 (원)", 100000, 1000000, 300000, step=50000)
 period = st.sidebar.selectbox("📊 비교 기간 선택", ["1개월", "3개월", "6개월", "9개월", "12개월"])
 
-# ✅ 초기화
+# ✅ 초기화 버튼
 if st.sidebar.button("🧹 데이터 초기화"):
-    if os.path.exists(DATA_FILE):
-        os.remove(DATA_FILE)
+    if os.path.exists("monthly_spending.csv"):
+        os.remove("monthly_spending.csv")
         st.success("모든 지출 데이터가 초기화되었습니다.")
 
-# ✅ 데이터 불러오기
+# ✅ 데이터 로딩
 spending_data = []
 df_all = pd.DataFrame()
 if os.path.exists(DATA_FILE):
@@ -92,6 +107,7 @@ if os.path.exists(DATA_FILE):
 else:
     spending_data = [{"category": cat, "amount": 0} for cat in categories]
 
+# ✅ 예산 정보 표시
 st.write(f"### 📆 {selected_month} 예산: {monthly_budget:,}원")
 
 # ✅ 지출 입력
@@ -103,19 +119,17 @@ for item in spending_data:
 if st.button("💾 지출 내역 저장"):
     df_new = pd.DataFrame(spending_data)
     df_new["month"] = selected_month
-
     if not df_all.empty:
         df_all = df_all[df_all["month"] != selected_month]
         df_all = pd.concat([df_all, df_new], ignore_index=True)
     else:
         df_all = df_new
-
     df_all.to_csv(DATA_FILE, index=False)
     st.success(f"{selected_month} 지출 내역이 저장되었습니다!")
 
-# ✅ 총합계
-total_amount = sum(item["amount"] for item in spending_data)
-st.markdown(f"### 💵 총 지출 합계: {total_amount:,}원")
+# ✅ 총 지출 합계
+total = sum(item["amount"] for item in spending_data)
+st.markdown(f"### 💵 총 지출 합계: {total:,}원")
 
 # ✅ 원형 그래프
 st.subheader("📈 지출 비율 시각화")
@@ -147,7 +161,7 @@ if os.path.exists(DATA_FILE):
     pivot_df = pivot_df.reindex(index=categories)
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    pivot_df.plot(kind="bar", ax=ax, color="orange")  # 생동감 있는 주황
+    pivot_df.plot(kind="bar", ax=ax, color="orange")
     ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
     ax.set_xlabel("카테고리", fontproperties=fontprop)
     ax.set_ylim(0, monthly_budget)
