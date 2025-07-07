@@ -111,7 +111,7 @@ if not df.empty:
 else:
     st.info("지출 내역을 입력하면 그래프가 표시됩니다.")
 
-# ✅ 막대 그래프 (월별)
+# ✅ 월별 지출 막대 그래프
 if os.path.exists(DATA_FILE):
     st.subheader("📊 월별 지출 막대 그래프")
     period_map = {
@@ -132,13 +132,13 @@ if os.path.exists(DATA_FILE):
     ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
     ax.set_xlabel("카테고리", fontproperties=fontprop)
     ax.set_ylim(0, monthly_budget)
-    ax.legend(prop=fontprop, bbox_to_anchor=(1.02, 1), loc="upper left")
-    ax.grid(False)
+    ax.legend(loc="upper left", bbox_to_anchor=(1, 1), prop=fontprop)
     plt.xticks(rotation=0, fontproperties=fontprop)
     plt.yticks(fontproperties=fontprop)
+    ax.grid(False)
     st.pyplot(fig)
 
-# ✅ 평균 막대 그래프
+# ✅ 평균 지출 막대 그래프
 st.subheader("📊 카테고리별 평균 지출")
 avg_data = {
     "식비": 180000,
@@ -155,6 +155,7 @@ avg_df.plot(kind="bar", legend=False, ax=ax, color="lightgray")
 ax.set_ylabel("지출 금액 (원)", fontproperties=fontprop)
 ax.set_xlabel("카테고리", fontproperties=fontprop)
 ax.set_title("카테고리별 평균 지출", fontproperties=fontprop)
+ax.set_ylim(0, monthly_budget)
 ax.grid(False)
 plt.xticks(rotation=0, fontproperties=fontprop)
 plt.yticks(fontproperties=fontprop)
